@@ -164,18 +164,13 @@ def initialize_system():
     try:
         from phoenix.otel import register
         
-        phoenix_api_key = os.getenv("PHOENIX_API_KEY")
-        if not phoenix_api_key:
-            raise ValueError("PHOENIX_API_KEY environment variable is required")
-        
-        print("🔗 Phoenix endpoint:", os.getenv("PHOENIX_COLLECTOR_ENDPOINT"))
-        print("🔑 Phoenix key present:", bool(phoenix_api_key))
-        print("🔑 Phoenix key value:", phoenix_api_key[:20] + "..." if phoenix_api_key else "None")
+        print("🔗 Phoenix endpoint:", os.getenv("PHOENIX_COLLECTOR_ENDPOINT", "https://app.phoenix.arize.com/s/markt/v1/traces"))
         
         tracer_provider = register(
             project_name=os.getenv("PHOENIX_PROJECT_NAME", "MyProject"),
             endpoint=os.getenv("PHOENIX_COLLECTOR_ENDPOINT", "https://app.phoenix.arize.com/s/markt/v1/traces"),
-            api_key=phoenix_api_key,
+            protocol="http/protobuf",
+            auto_instrument=True,
             batch=True,
         )
         
@@ -197,7 +192,7 @@ def initialize_system():
     return "System initialized! You can now ask questions about the data."
 
 
-async def process_question(question, history):
+def process_question(question, history):
     """
     Process a question through the three-agent pipeline and return the response
     """
@@ -209,11 +204,12 @@ async def process_question(question, history):
     
     try:
         # Decide which dataset to load based on the question
-        loader_result = await Runner.run(
+        import asyncio
+        loader_result = asyncio.run(Runner.run(
             starting_agent=create_data_loader_agent(),
             input=question,
             session=session,
-        )
+        ))
         key = str(getattr(loader_result, "final_output", "")).strip().lower()
 
         path_map = {
@@ -248,21 +244,21 @@ async def process_question(question, history):
         categorical_cols = content.select_dtypes(include=["object", "category"]).columns.tolist()
         
         # Analyze
-        analysis_result = await Runner.run(
+        analysis_result = asyncio.run(Runner.run(
             starting_agent=create_analysis_agent(),
             input=question,
             context=content,
             session=session,
-        )
+        ))
         analysis_text = str(getattr(analysis_result, "final_output", "")).strip()
 
         # Communicate
-        final_result = await Runner.run(
+        final_result = asyncio.run(Runner.run(
             starting_agent=create_communication_agent(),
             input=question,
             context=analysis_text,
             session=session,
-        )
+        ))
 
         final_response = getattr(final_result, "final_output", "")
         
@@ -430,9 +426,9 @@ def create_gradio_interface():
             # Build and return the loading state immediately
             loading_html = build_chat_html()
             
-            # Process the question directly (async)
+            # Process the question directly
             try:
-                result = asyncio.run(process_question(question, []))
+                result = process_question(question, [])
                 
                 # Handle response and plots
                 if isinstance(result, tuple) and len(result) == 2:
@@ -549,8 +545,8 @@ if __name__ == "__main__":
     # Create and launch the Gradio interface
     demo = create_gradio_interface()
     demo.launch(
-        server_name="0.0.0.0",
-        server_port=8003,
-        share=False,
+        server_name="127.0.0.1",
+        server_port=8010,
+        share=True,
         show_error=True
     )
