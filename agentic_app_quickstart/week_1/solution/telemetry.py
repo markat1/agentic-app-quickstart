@@ -15,22 +15,20 @@ def init_tracing(
     Follows Phoenix docs: https://arize.com/docs/phoenix/tracing/how-to-tracing/setup-tracing/setup-using-phoenix-otel
 
     Env used:
-    - PHOENIX_API_KEY (auth)
     - PHOENIX_COLLECTOR_ENDPOINT (fallback if endpoint arg missing)
 
     Returns (tracer, tracer_provider).
     """
-    phoenix_api_key = os.getenv("PHOENIX_API_KEY")
-    if not phoenix_api_key:
-        raise ValueError("PHOENIX_API_KEY environment variable is required")
+    # Use provided endpoint or fall back to environment variable or default
+    phoenix_endpoint = endpoint or os.getenv("PHOENIX_COLLECTOR_ENDPOINT", "https://app.phoenix.arize.com/s/markt/v1/traces")
     
-    print("🔗 Phoenix endpoint:", os.getenv("PHOENIX_COLLECTOR_ENDPOINT"))
-    print("🔑 Phoenix key present:", bool(phoenix_api_key))
+    print("🔗 Phoenix endpoint:", phoenix_endpoint)
     
     tracer_provider = register(
-        project_name=os.getenv("PHOENIX_PROJECT_NAME", "MyProject"),
-        endpoint=os.getenv("PHOENIX_COLLECTOR_ENDPOINT", "https://app.phoenix.arize.com/v1/traces"),
-        api_key=phoenix_api_key,
+        project_name=project_name or os.getenv("PHOENIX_PROJECT_NAME", "MyProject"),
+        endpoint=phoenix_endpoint,
+        protocol="http/protobuf",
+        auto_instrument=auto_instrument,
         batch=True,
     )
     
