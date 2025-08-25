@@ -1,8 +1,12 @@
 import os
 from typing import Iterable, Sequence
 
+import opentelemetry.trace
 from phoenix import Client
 from phoenix.evals import OpenAIModel, llm_classify
+from agentic_app_quickstart.examples.helpers import get_model
+from openinference.semconv.trace import OpenInferenceSpanKindValues, SpanAttributes
+from opentelemetry import trace as trace_api
 
 
 def create_phoenix_spans_dataset(
@@ -33,8 +37,17 @@ def create_phoenix_spans_dataset(
         for _, row in spans_df.iterrows()
     ]
 
+def classify_user_intent(
+        user_prompt: str,
+        tracer: opentelemetry.trace.Tracer):
+    with tracer.start_as_current_span("classify_user_intent") as span:
+        span.set_attribute("mycompany.user_prompt", user_prompt)
+        span.set_attribute(SpanAttributes.OPENINFERENCE_SPAN_KIND, OpenInferenceSpanKindValues.CHAIN.value)
+        span.set_attribute(SpanAttributes.LLM_COST_COMPLETION_TOKENS, 10)
+        
+        span.set_status(trace_api.StatusCode.OK)
 
-# Minimal hallucination detector: classifies each (input, output) pair as grounded vs hallucination
+
 HALLUCINATION_PROMPT_TEMPLATE = (
     "You are auditing outputs for hallucinations with awareness of the producing agent's role.\n"
     "Classify each case as one of: grounded, hallucination.\n"
@@ -59,16 +72,11 @@ HALLUCINATION_PROMPT_TEMPLATE = (
 
 
 def evaluate_hallucination(dataset: Iterable[dict]):
-    model = OpenAIModel(
-        base_url=os.getenv("OPENAI_API_ENDPOINT"),
-        api_key=os.getenv("OPENAI_API_KEY"),
-        model="gpt-4.1",
-    )
     rails = ["grounded", "hallucination"]
     return llm_classify(
         data=list(dataset),
         template=HALLUCINATION_PROMPT_TEMPLATE,
-        model=model,
+        model=get_model(),
         rails=rails,
         provide_explanation=True,
         concurrency=5,

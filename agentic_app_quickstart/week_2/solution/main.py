@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 
 import os
 from phoenix.otel import register
+from agentic_app_quickstart.week_1.solution.telemetry import init_tracing
 from agentic_app_quickstart.week_2.solution.monitoring.metrics import (
     start_reasoning_span,
     start_tool_span,
@@ -19,18 +20,10 @@ from agentic_app_quickstart.week_2.solution.monitoring.summary import summarize_
 async def main():
     load_dotenv()
     
-    # Initialize tracing
-    endpoint = os.getenv("PHOENIX_ENDPOINT")
-    if not endpoint:
-        raise RuntimeError(
-            "PHOENIX_ENDPOINT is not set. Define it in your environment or .env file."
-        )
-    
-    register(
-        endpoint=endpoint,
-        project_name="agentic_app_quickstart",
-        protocol="http/protobuf",
+    init_tracing(
+        project_name=os.environ.get("PHOENIX_PROJECT_NAME"),
         auto_instrument=True,
+        endpoint=os.getenv("PHOENIX_COLLECTOR_ENDPOINT"),
     )
 
     with start_reasoning_span(user_query="example question", agent_name="Week2Agent"):

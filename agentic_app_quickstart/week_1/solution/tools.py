@@ -6,8 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from time import time
+from phoenix.trace import tracer
 
-
+@tracer.chain
 def default_tool_error(ctx: RunContextWrapper[pd.DataFrame], error: Exception) -> str:
     base = str(error)
     try:
@@ -30,7 +31,7 @@ def default_tool_error(ctx: RunContextWrapper[pd.DataFrame], error: Exception) -
         pass
     return base
 
-
+@tracer.chain
 def data_validation_error(ctx: RunContextWrapper[pd.DataFrame], error: Exception) -> str:
     """
     Specialized error handler for data validation issues.

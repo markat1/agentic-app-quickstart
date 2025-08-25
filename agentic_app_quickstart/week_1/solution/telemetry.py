@@ -20,12 +20,12 @@ def init_tracing(
     Returns (tracer, tracer_provider).
     """
     # Use provided endpoint or fall back to environment variable or default
-    phoenix_endpoint = endpoint or os.getenv("PHOENIX_COLLECTOR_ENDPOINT", "https://app.phoenix.arize.com/s/markt/v1/traces")
+    phoenix_endpoint = endpoint or os.getenv("PHOENIX_COLLECTOR_ENDPOINT")
     
     print("🔗 Phoenix endpoint:", phoenix_endpoint)
     
     tracer_provider = register(
-        project_name=project_name or os.getenv("PHOENIX_PROJECT_NAME", "MyProject"),
+        project_name=project_name or os.getenv("PHOENIX_PROJECT_NAME", "default-project-name"),
         endpoint=phoenix_endpoint,
         protocol="http/protobuf",
         auto_instrument=auto_instrument,
