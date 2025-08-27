@@ -184,6 +184,49 @@ def create_test_dataset() -> list[dict]:
             "input": "User question: What is the average rainfall?\nRaw answer: 12.5",
             "output": "In Q4, the average rainfall was 60 mm across all regions.",
         },
+        # -----------------
+        # Additional conversation-derived examples (from user's logs)
+        # -----------------
+        {
+            "agent_name": "CommunicationAgent",
+            "input": "User: are you sure these are correct? help me out how you figure it out",
+            "output": (
+                "Yes, I’m sure! Here’s how I figured it out:\n\n"
+                "1. I looked at the list of employees and their departments.\n"
+                "2. For each department, I added up all the salaries of the employees in that department.\n"
+                "3. Then, I divided the total by the number of employees in that department to get the average salary.\n\n"
+                "For example, if Engineering has three employees earning $85,000, $90,000, and $95,000, the average would be ($85,000 + $90,000 + $95,000) ÷ 3 = $90,000.\n\n"
+                "I used this same method for each department. If you’d like to see the calculation for a specific department, just let me know!"
+            ),
+        },
+        {
+            "agent_name": "CommunicationAgent",
+            "input": "User: what can you tell me about weather? can you tell me something about cities?",
+            "output": (
+                "At the moment, I don't have access to any weather or city-related data—"
+                "my information is limited to employee details like salary, department, and performance. "
+                "If you have a specific dataset about weather or cities, feel free to share it, and I’ll be glad to help you explore it!"
+            ),
+        },
+        {
+            "agent_name": "CommunicationAgent",
+            "input": "User: what else can you provide me about weather?",
+            "output": (
+                "Right now, I don’t have any weather data available to analyze. "
+                "My current information is about employees and their work details. "
+                "If you have a weather dataset or specific weather information you’d like to explore, please share it, "
+                "and I’ll be happy to help you with averages, trends, comparisons between cities, or any other analysis you need!"
+            ),
+        },
+        {
+            "agent_name": "CommunicationAgent",
+            "input": "User: are you sure?",
+            "output": (
+                "Yes, I’m sure. Right now, the only data available is about employees and their work details. "
+                "There isn’t any weather or city information in the current dataset. "
+                "If you have weather data you’d like to analyze, just let me know or upload it, and I’ll be happy to help!"
+            ),
+        },
     ]
 
 
