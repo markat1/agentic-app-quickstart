@@ -48,55 +48,52 @@ async def main():
             input=question,
             session=session,
         )
-        key = str(getattr(loader_result, "final_output", "")).strip().lower()
 
-        path_map = {
-            "employees": "data/employee_data.csv",
-            "weather": "data/weather_data.csv",
-            "sales": "data/sample_sales.csv",
-        }
+        final_result = await Runner.run(
+            starting_agent=create_analysis_agent(),
+            input=f"the user question is: {question}. The path is {loader_result.final_output}",
+            session=session,
+        )
 
-        # Auto-select the best dataset based on AI recommendation
-        if key in path_map:
-            csv_path = path_map[key]
-            print(f"Data loader selected: {key} -> {csv_path}")
-        else:
-            # Fallback: try to infer from question content
-            question_lower = question.lower()
-            if any(word in question_lower for word in ["employee", "salary", "performance", "hr"]):
-                key = "employees"
-            elif any(word in question_lower for word in ["weather", "temperature", "humidity", "climate"]):
-                key = "weather"
-            elif any(word in question_lower for word in ["sales", "price", "quantity", "transaction"]):
-                key = "sales"
-            else:
-                key = "employees"  # Default fallback
-            csv_path = path_map[key]
-            print(f"Auto-selected dataset: {key} -> {csv_path}")
 
+
+#        key = str(getattr(loader_result, "final_output", "")).strip().lower()
+
+        print(loader_result.final_output)
+        print(final_result.final_output)
+
+        # path_map = {
+        #     "employees": "data/employee_data.csv",
+        #     "weather": "data/weather_data.csv",
+        #     "sales": "data/sample_sales.csv",
+        # }
+
+    
         # Load CSV into context
-        content = pd.read_csv(csv_path)
+        #content = pd.read_csv(csv_path)
        
         # Analyze
-        analysis_result = await Runner.run(
-            starting_agent=create_analysis_agent(),
-            input=question,
-            context=content,
-            session=session,
-        )
-        analysis_text = str(getattr(analysis_result, "final_output", "")).strip()
+        # analysis_result = await Runner.run(
+        #     starting_agent=create_analysis_agent(),
+        #     input=question,
+        #     context=content,
+        #     session=session,
+        # )
+        # analysis_text = str(getattr(analysis_result, "final_output", "")).strip()
 
-        # Communicate
-        final_result = await Runner.run(
-            starting_agent=create_communication_agent(),
-            input=question,
-            context=analysis_text,
-            session=session,
-        )
+        # # Communicate
+        # final_result = await Runner.run(
+        #     starting_agent=create_communication_agent(),
+        #     input=question,
+        #     context=analysis_text,
+        #     session=session,
+        # )
 
-        print("\nAgent:")
-        print(getattr(final_result, "final_output", ""))
-        print("\n" + "="*50 + "\n")
+       # print("\nAgent:")
+       # print(getattr(final_result, "final_output", ""))
+       # print("\n" + "="*50 + "\n")
+
+
 
 
 if __name__ == "__main__":

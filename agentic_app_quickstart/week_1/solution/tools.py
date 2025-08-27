@@ -9,6 +9,11 @@ from time import time
 from agentic_app_quickstart.week_1.solution.telemetry import init_tracing
 
 tracer, _ = init_tracing()
+
+def get_file(path: str):
+    """Loads a CSV file into a DataFrame."""
+    return path
+
 @tracer.chain
 def default_tool_error(ctx: RunContextWrapper[pd.DataFrame], error: Exception) -> str:
     base = str(error)
@@ -71,16 +76,21 @@ def calculate_column_average(ctx: RunContextWrapper[pd.DataFrame], column_name: 
 @function_tool(failure_error_function=default_tool_error)
 def calculate_filtered_column_average(
     ctx: RunContextWrapper[pd.DataFrame],
+    file_path: str,
     filter_column: str,
     value: Any,
     target_column: str | None = None,
 ) -> float:
     """
     Calculates the mean of target_column for rows where filter_column == value.
+    if filter_column is equal to city and value equals to Phoenix and file_path equals weather.csv
+    then we need to filter the dataframe for rows where city == Phoenix and then calculate the mean of target_column.
     """
+    df = pd.read_csv(file_path)
+
+
     if not target_column:
         raise ValueError("You must pass in 'target_column' for the given filter")
-    df = ctx.context
     mask = df[filter_column] == value
     return float(df.loc[mask, target_column].mean())
 
@@ -97,11 +107,11 @@ def count_rows_with_value(
 
 
 @function_tool(failure_error_function=default_tool_error)
-def get_column_names(ctx: RunContextWrapper[pd.DataFrame]) -> list[str]:
+def get_column_names(file_path: str) -> list[str]:
     """
     Retrieves the names of all columns in a DataFrame.
     """
-    df = ctx.context
+    df = pd.read_csv(file_path)
     return df.columns.tolist()
 
 

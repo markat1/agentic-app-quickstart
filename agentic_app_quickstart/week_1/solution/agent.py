@@ -55,6 +55,8 @@ def create_analysis_agent() -> Agent:
             "results. Prefer numeric columns for aggregations. If the question cannot "
             "be answered with the provided data, state that clearly. Return a concise "
             "answer and include the key numbers used."
+            "Plan your steps and then execute them."
+            "First use the get_file function to load the file into memory and then use the available tools to analyze the data."
         ),
         tools=[
             get_column_names,
@@ -74,7 +76,7 @@ def create_analysis_agent() -> Agent:
             find_correlation,
             get_correlation_matrix,
             compare_with_dataset,
-            compare_csv_files
+            compare_csv_files,
         ],
     )
 
@@ -96,6 +98,13 @@ def create_data_loader_agent() -> Agent:
             "- weather: daily weather observations\n"
             "- sales: transactional sales data\n\n"
             "Return ONLY a single lowercase word: employees, weather, or sales."
+            "The list below contains the file paths and names for different topics"
+            """
+            "employees": "data/employee_data.csv"
+            "weather": "data/weather_data.csv"
+            "sales": "data/sample_sales.csv"
+            """
+            "Return the path to the csv file"
         ),
     )
 
