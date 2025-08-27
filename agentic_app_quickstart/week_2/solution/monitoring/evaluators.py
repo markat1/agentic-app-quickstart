@@ -5,15 +5,11 @@ import opentelemetry.trace
 from pandas import DataFrame
 from phoenix import Client
 from phoenix.evals import OpenAIModel, llm_classify
-from agentic_app_quickstart.examples.helpers import get_model
 from openinference.semconv.trace import OpenInferenceSpanKindValues, SpanAttributes
 from opentelemetry import trace as trace_api
-from agentic_app_quickstart.week_1.solution.telemetry import init_tracing
-from openinference.instrumentation.openai import OpenAIInstrumentor
 
-tracer, tracer_provider = init_tracing()
+from agentic_app_quickstart.examples.helpers import get_eval_model
 
-OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
 
 def get_spans_from_phoenix(
     project_name: str,
@@ -79,10 +75,12 @@ HALLUCINATION_PROMPT_TEMPLATE = (
 
 def evaluate_hallucination(dataset: Iterable[dict]):
     rails = ["grounded", "hallucination"]
+    model = get_eval_model()
+
     return llm_classify(
         data=list(dataset),
         template=HALLUCINATION_PROMPT_TEMPLATE,
-        model=get_model(),
+        model=model,
         rails=rails,
         provide_explanation=True,
         concurrency=5,
