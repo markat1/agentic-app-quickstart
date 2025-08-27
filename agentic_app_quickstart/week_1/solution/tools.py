@@ -6,8 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from time import time
-from phoenix.trace import tracer
+from agentic_app_quickstart.week_1.solution.telemetry import init_tracing
 
+tracer, _ = init_tracing()
 @tracer.chain
 def default_tool_error(ctx: RunContextWrapper[pd.DataFrame], error: Exception) -> str:
     base = str(error)

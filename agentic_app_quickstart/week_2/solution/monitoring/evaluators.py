@@ -2,14 +2,20 @@ import os
 from typing import Iterable, Sequence
 
 import opentelemetry.trace
+from pandas import DataFrame
 from phoenix import Client
 from phoenix.evals import OpenAIModel, llm_classify
 from agentic_app_quickstart.examples.helpers import get_model
 from openinference.semconv.trace import OpenInferenceSpanKindValues, SpanAttributes
 from opentelemetry import trace as trace_api
+from agentic_app_quickstart.week_1.solution.telemetry import init_tracing
+from openinference.instrumentation.openai import OpenAIInstrumentor
 
+tracer, tracer_provider = init_tracing()
 
-def create_phoenix_spans_dataset(
+OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
+
+def get_spans_from_phoenix(
     project_name: str,
     *,
     sample: int | None = 50,
@@ -19,11 +25,11 @@ def create_phoenix_spans_dataset(
     client = Client(endpoint=endpoint, api_key=os.getenv("PHOENIX_API_KEY"))
     
     try:
-        spans_df = client.get_spans_dataframe(project_name=project_name, limit=500)
-        if include_agents and "attributes.agent.name" in spans_df.columns:
-            spans_df = spans_df[spans_df["attributes.agent.name"].isin(include_agents)]
+        spans_from_phoenix : DataFrame = client.get_spans_dataframe(project_name=project_name, limit=500)
+        if include_agents and "attributes.agent.name" in spans_from_phoenix.columns:
+            spans_from_phoenix = spans_from_phoenix[spans_from_phoenix["attributes.agent.name"].isin(include_agents)]
         if sample:
-            spans_df = spans_df.sample(n=min(sample, len(spans_df)))
+            spans_from_phoenix = spans_from_phoenix.sample(n=min(sample, len(spans_from_phoenix)))
     except Exception:
         return []
     
@@ -34,7 +40,7 @@ def create_phoenix_spans_dataset(
             "output": row.get("attributes.output.value", ""),
             "agent_name": row.get("attributes.agent.name", ""),
         }
-        for _, row in spans_df.iterrows()
+        for _, row in spans_from_phoenix.iterrows()
     ]
 
 def classify_user_intent(

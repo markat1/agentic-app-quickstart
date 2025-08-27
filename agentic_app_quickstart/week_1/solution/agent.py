@@ -5,6 +5,9 @@ from agents import Agent, ModelSettings
 
 from agentic_app_quickstart.examples.helpers import get_model
 
+from agentic_app_quickstart.week_1.solution.telemetry import init_tracing
+from openinference.semconv.trace import SpanAttributes
+
 from .tools import (
     get_column_names,
     calculate_column_average,
@@ -33,14 +36,18 @@ __all__ = [
     "create_communication_agent",
 ]
 
+tracer, _ = init_tracing()
 
+
+
+@tracer.start_as_current_span(name="analysis_agent", attributes={SpanAttributes.OPENINFERENCE_SPAN_KIND: "agent"})
 def create_analysis_agent() -> Agent:
     """
     Agent that receives a pandas DataFrame (in context) and uses tools to analyze it.
     """
     return Agent(
         name="analysis_agent",
-        model= get_model(),
+        model=get_model(),
         model_settings=ModelSettings(temperature=0.1),
         instructions=(
             "You are a data analysis assistant. The conversation context contains a "
@@ -72,6 +79,7 @@ def create_analysis_agent() -> Agent:
     )
 
 
+@tracer.start_as_current_span(name="data_loader_agent", attributes={SpanAttributes.OPENINFERENCE_SPAN_KIND: "agent"})
 def create_data_loader_agent() -> Agent:
     """
     Agent that decides which dataset best answers the user's question.
@@ -91,7 +99,7 @@ def create_data_loader_agent() -> Agent:
         ),
     )
 
-
+@tracer.start_as_current_span(name="communication_agent", attributes={SpanAttributes.OPENINFERENCE_SPAN_KIND: "agent"})
 def create_communication_agent() -> Agent:
     """
     Agent that turns the analysis output into a clear, user-friendly final answer.

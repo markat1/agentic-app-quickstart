@@ -23,6 +23,7 @@ dependencies = [
     "marimo>=0.2.0",
     "opentelemetry-exporter-otlp>=1.36.0",
     "openinference-semantic-conventions>=0.1.21",
+    "openinference-instrumentation-openai>=0.1.31",
 ]
 
 [dependency-groups]

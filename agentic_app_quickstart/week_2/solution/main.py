@@ -2,7 +2,6 @@ import asyncio
 from dotenv import load_dotenv
 
 import os
-from phoenix.otel import register
 from agentic_app_quickstart.week_1.solution.telemetry import init_tracing
 from agentic_app_quickstart.week_2.solution.monitoring.metrics import (
     start_reasoning_span,
@@ -10,7 +9,7 @@ from agentic_app_quickstart.week_2.solution.monitoring.metrics import (
     start_llm_span,
 )
 from agentic_app_quickstart.week_2.solution.monitoring.evaluators import (
-    create_phoenix_spans_dataset,
+    get_spans_from_phoenix,
     create_test_dataset,
     evaluate_hallucination,
 )
@@ -21,19 +20,17 @@ async def main():
     load_dotenv()
     
     init_tracing(
-        project_name=os.environ.get("PHOENIX_PROJECT_NAME"),
-        auto_instrument=True,
         endpoint=os.getenv("PHOENIX_COLLECTOR_ENDPOINT"),
     )
 
-    with start_reasoning_span(user_query="example question", agent_name="Week2Agent"):
-        with start_tool_span(tool_name="csv_loader", tool_input="employees.csv"):
-            pass
-        with start_llm_span(model="gpt-4.1", prompt_tokens=42, completion_tokens=84, total_cost=0.0012):
-            pass
+    # with start_reasoning_span(user_query="example question", agent_name="Week2Agent"):
+    #     with start_tool_span(tool_name="csv_loader", tool_input="employees.csv"):
+    #         pass
+    #     with start_llm_span(model="gpt-4.1", prompt_tokens=42, completion_tokens=84, total_cost=0.0012):
+    #         pass
 
     # Evaluation runs: Phoenix spans and a small built-in test dataset
-    spans_dataset = create_phoenix_spans_dataset(project_name="agentic_app_quickstart", sample=10)
+    spans_dataset = get_spans_from_phoenix(project_name="agentic_app_quickstart", sample=10)
     test_dataset = create_test_dataset()
 
     if spans_dataset:
